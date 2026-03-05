@@ -385,7 +385,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
         const { width, height } = screenInfo.videoSize;
         this.touchableCanvas.width = width;
         this.touchableCanvas.height = height;
-        if (this.parentElement) {
+        if (this.parentElement && !this.parentElement.classList.contains('video')) {
             this.parentElement.style.height = `${height}px`;
             this.parentElement.style.width = `${width}px`;
         }

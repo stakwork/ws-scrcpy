@@ -49,6 +49,7 @@ export class StreamClientScrcpy
     private player?: BasePlayer;
     private fitToScreen?: boolean;
     private readonly streamReceiver: StreamReceiverScrcpy;
+    private videoContainer?: HTMLElement;
 
     public static registerPlayer(playerClass: PlayerClass): void {
         if (playerClass.isSupported()) {
@@ -210,6 +211,10 @@ export class StreamClientScrcpy
             this.sendMessage(CommandControlMessage.createSetVideoSettingsCommand(currentSettings));
             return;
         }
+        if (this.videoContainer) {
+            const ratio = screenInfo.videoSize.height / screenInfo.videoSize.width;
+            this.videoContainer.style.setProperty('--device-screen-ratio', `${ratio.toFixed(6)}`);
+        }
 
         this.clientsCount = info.connectionCount;
         let min = VideoSettings.copy(videoSettings);
@@ -300,6 +305,7 @@ export class StreamClientScrcpy
         const videoContainer = document.createElement('div');
         videoContainer.className = 'video';
         phoneFrame.appendChild(videoContainer);
+        this.videoContainer = videoContainer;
 
         const googToolBox = GoogToolBox.createToolBox(udid, player, this);
         this.controlButtons = googToolBox.getHolderElement();
@@ -367,12 +373,15 @@ export class StreamClientScrcpy
     }
 
     public getMaxSize(): Size | undefined {
-        if (!this.controlButtons) {
+        if (!this.videoContainer) {
             return;
         }
-        const body = document.body;
-        const width = body.clientWidth & ~15;
-        const height = body.clientHeight & ~15;
+        const rect = this.videoContainer.getBoundingClientRect();
+        const width = Math.floor(rect.width) & ~15;
+        const height = Math.floor(rect.height) & ~15;
+        if (width <= 0 || height <= 0) {
+            return;
+        }
         return new Size(width, height);
     }
 
